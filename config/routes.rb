@@ -1,6 +1,21 @@
-match 'adburndown/(:action(/:id))', :controller => 'adburndown'
-match 'adsprintinl/(:action(/:id))', :controller => 'adsprintinl'
-match 'adsprints/(:action(/:id))', :controller => 'adsprints'
-match 'adtaskinl/(:action(/:id))', :controller => 'adtaskinl'
-match 'adtasks/(:action(/:id))', :controller => 'adtasks'
-match 'all_sprints/(:action(/:id))', :controller => 'all_sprints'
+resources :all_sprints, only: :index
+resources :adsprints, :adtasks, except: %i(index show new create edit update destroy) do
+  collection do
+    get :list
+  end
+end
+resources :adsprintinl, only: :create do
+  member do
+    match :inplace, via: %i(put patch)
+  end
+end
+resources :adburndown, only: :show
+resources :adtaskinl, only: %i(update create) do
+  member do
+    get :tooltipp
+    match :inplace, via: %i(put patch)
+  end
+  collection do
+    post :spent
+  end
+end

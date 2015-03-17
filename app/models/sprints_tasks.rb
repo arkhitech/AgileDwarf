@@ -6,7 +6,7 @@ class SprintsTasks < Issue
   ORDER = 'case when issues.ir_position is null then 1 else 0 end ASC, case when issues.ir_position is NULL then issues.id else issues.ir_position end ASC'
 
   def self.get_tasks_by_status_and_tracker(project, status, tracker_id, sprint, user)
-    cond = ["issues.project_id = ? and status_id = ?", project.id, status]
+    cond = ['issues.project_id = ? and status_id = ?', project.id, status]
 
     if sprint == 'null'
       cond[0] += ' and fixed_version_id is null'
@@ -18,7 +18,7 @@ class SprintsTasks < Issue
       cond << sprint
     end
 
-    if user == "" # Unassigned
+    if user == '' # Unassigned
       cond[0] += ' and assigned_to_id IS ?'
       cond << nil
     elsif user # Assigned to user
@@ -36,13 +36,13 @@ class SprintsTasks < Issue
       cond[0] += " and tracker_id IN (#{trackers})"
     end
 
-    tasks = SprintsTasks.find(:all, :select => 'issues.*, sum(hours) as spent', :order => SprintsTasks::ORDER, :conditions => cond, :group => "issues.id", :joins => [:status], :joins => "left join time_entries ON time_entries.issue_id = issues.id", :include => [:assigned_to])
+    tasks = SprintsTasks.select('issues.*, sum(hours) as spent').order(SprintsTasks::ORDER).where(*cond).group('issues.id').joins(:status).joins('LEFT JOIN time_entries ON time_entries.issue_id = issues.id').includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end
 
   def self.get_tasks_by_sprint(project, sprint)
-    cond = ["is_closed = ?", false]
+    cond = ['is_closed = ?', false]
     if project.present?
       cond[0] += ' and project_id IN (?)'
       cond << [project.id, project.parent_id].compact
@@ -57,13 +57,13 @@ class SprintsTasks < Issue
       end
     end
 
-    tasks = SprintsTasks.find(:all, :select => 'issues.*, trackers.name AS t_name', :order => SprintsTasks::ORDER, :conditions => cond, :joins => :status, :joins => "left join issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id", :include => :assigned_to)
+    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).where(cond).joins(:status).joins('LEFT JOIN issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end
 
   def self.get_tasks_by_sprint_and_tracker(project, sprint, tracker_id)
-    cond = ["is_closed = ?", false]
+    cond = ['is_closed = ?', false]
     if project.present?
       cond[0] += ' and project_id IN (?)'
       cond << [project.id, project.parent_id].compact
@@ -87,7 +87,7 @@ class SprintsTasks < Issue
       end
     end
 
-    tasks = SprintsTasks.find(:all, :select => 'issues.*, trackers.name AS t_name', :order => SprintsTasks::ORDER, :conditions => cond, :joins => :status, :joins => "left join issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id", :include => :assigned_to)
+    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).conditions(cond).joins(:status).joins('left join issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end
@@ -95,7 +95,7 @@ class SprintsTasks < Issue
   def self.filter_out_user_stories_with_children(tasks)
     # if the task is a user story then only display it if it has no child issues.
     # if it does then we schedule the child issues, not the user story itself
-    if user_story_tracker_id = Tracker.where(name: "UserStory").first.try(:id)
+    if user_story_tracker_id = Tracker.where(name: 'UserStory').first.try(:id)
       tasks.select do |t|
         if t.tracker_id == user_story_tracker_id
           t.descendants.empty?
