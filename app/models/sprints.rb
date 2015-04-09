@@ -8,7 +8,7 @@ class Sprints < Version
   scope :open_sprints, ->(project = nil) do
     scope = order('ir_start_date ASC, ir_end_date ASC')
     if project
-      scope = scope.where("status = 'open' and (project_id IN (?) or sharing = 'system'", [project.id, project.parent_id].compact)
+      scope = scope.where("status = 'open' and (project_id IN (?) or sharing = 'system')", [project.id, project.parent_id].compact)
     else
       scope = scope.where("status = 'open'")
     end
