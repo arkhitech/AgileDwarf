@@ -36,7 +36,7 @@ class SprintsTasks < Issue
       cond[0] += " and tracker_id IN (#{trackers})"
     end
 
-    tasks = SprintsTasks.select('issues.*, sum(hours) as spent').order(SprintsTasks::ORDER).where(*cond).group('issues.id').joins(:status).joins('LEFT JOIN time_entries ON time_entries.issue_id = issues.id').includes(:assigned_to)
+    tasks = SprintsTasks.select('issues.*, sum(hours) as spent').order(SprintsTasks::ORDER).where(*cond).group('issues.id').joins(:status).joins('LEFT JOIN time_entries ON time_entries.issue_id = issues.id').joins(:assigned_to).includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end
@@ -57,7 +57,7 @@ class SprintsTasks < Issue
       end
     end
 
-    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).where(cond).joins(:status).joins('LEFT JOIN issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').includes(:assigned_to)
+    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).where(cond).joins('LEFT JOIN issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').joins(:assigned_to).includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end
@@ -65,7 +65,7 @@ class SprintsTasks < Issue
   def self.get_tasks_by_sprint_and_tracker(project, sprint, tracker_id)
     cond = ['is_closed = ?', false]
     if project.present?
-      cond[0] += ' and project_id IN (?)'
+      cond[0] += ' and issues.project_id IN (?)'
       cond << [project.id, project.parent_id].compact
     end
 
@@ -87,7 +87,7 @@ class SprintsTasks < Issue
       end
     end
 
-    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).conditions(cond).joins(:status).joins('left join issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').includes(:assigned_to)
+    tasks = SprintsTasks.select('issues.*, trackers.name AS t_name').order(SprintsTasks::ORDER).where(cond).joins('left join issue_statuses on issue_statuses.id = status_id left join trackers on trackers.id = tracker_id').joins(:assigned_to).includes(:assigned_to)
 
     filter_out_user_stories_with_children tasks
   end

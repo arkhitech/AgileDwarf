@@ -44,7 +44,7 @@ class AdtasksController < ApplicationController
     else
       @trackers = @project.trackers.pluck(:name) & %w(Task Bug)
     end
-    trackers_ids = @trackers.include?('All') ? nil : Tracker.find_all_by_name(@trackers).map(&:id)
+    trackers_ids = @trackers.include?('All') ? nil : Tracker.where(name: @trackers).map(&:id)
 
     @plugin_path = File.join(Redmine::Utils.relative_url_root, 'plugin_assets', 'agile_dwarf')
     status_ids = []
@@ -53,7 +53,7 @@ class AdtasksController < ApplicationController
       status_ids << Setting.plugin_agile_dwarf[('stcolumn' + i.to_s)].to_i
     end
     @statuses = {}
-    IssueStatus.find_all_by_id(status_ids).each {|x| @statuses[x.id] = x.name}
+    IssueStatus.where(id: status_ids).each {|x| @statuses[x.id] = x.name}
     @columns = []
     for i in 0 .. colcount - 1
       tasks = SprintsTasks.get_tasks_by_status_and_tracker(@project, status_ids[i], trackers_ids, sprint, user)
