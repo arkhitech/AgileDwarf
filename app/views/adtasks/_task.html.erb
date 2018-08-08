@@ -1,24 +1,76 @@
-<div id="task.<%=h task.id %>" class="sc_task">
-  <div class="fl task_no">#<%= link_to task.id, :controller => 'issues', :action => 'show', :id => task %></div>
-  <div class="fl task_desc"><img src="<%= File.join(@plugin_path, 'images', 'task_desc.png') %>"/></div>
-  <div class="task_subject" title="<%=h task.subject %>"><%=h task.subject %></div>
-  <div class="task_row">
-      <div class="task_doneratio_slide"></div>
-      <div class="task_owner fr"><%=h task.assigned_to %></div>
-  </div>
-  <div class="task_doneratio_value fl"><%=h task.done_ratio || '0' %></div>
-  <div class="fl task_estimate_params">
-      <div class="measure fl">%</div>
-      <div class="fl task_estimate_sep">/</div>
-      <div class="task_estimate fl"><%=h task.estimated_hours || l(:label_sprints_placeholder_estimated) %></div>
-      <div class="measure fl">h</div>
-  </div>
-  <div class="task_add_spent fr">
-    <div class="task_add_spent_value fr">X</div>
-    <div class="measure fr">+</div>
-  </div>
-  <div class="fr task_estimate_params">
-      <div class="measure fr">h</div>
-      <div class="fr task_spent_time"><%=h task.spent || '0' %></div>
+<div id="task.<%=h task.id %>"
+	<% if task.due_date %>
+    <% if task.due_date < Date.today %>
+      style = "background-color: lightpink;"
+    <% elsif task.due_date == Date.today %>
+      style = "background-color: lightyellow;"
+    <% end %>
+  <% end %>
+		 class="sc_task sc_task_tracker_<%= Tracker.find(task.tracker_id).name %> <%= Tracker.find(task.tracker_id).name %> <%= task.children.count  == 0 or Tracker.find(task.tracker_id).name != 'UserStory' ? '' : 'sc_task_hide' %> <%= 'blocked' if task.blocked? %>">
+
+  <% if task.parent || task.tracker_id == Tracker.where(name: "UserStory").first.try(:id) %>
+    <% (task.parent || task).tap do |user_story| %>
+      <div class="task_parent">
+        User Story:
+        <span class="task_no">#<%= link_to user_story.id, :controller => 'issues', :action => 'show', :id => user_story.id %></span>
+        <span><%= user_story.subject %></span>
+      </div>
+    <%- end %>
+  <%- end %>
+
+  <div style="padding-left: 1.5%; padding-top: 10px;">
+    <div class="clearfix">
+      <div class="fl task_no clearfix">#<%= link_to task.id, :controller => 'issues', :action => 'show', :id => task %></div>
+      <div class="fl task_desc clearfix"><img src="<%= File.join(@plugin_path, 'images', 'task_desc.png') %>"/></div>
+      <div class="fl task_tracker_name clearfix"><%=h Tracker.find(task.tracker_id).name %>&nbsp;-&nbsp;</div>
+      <div class="fl task_subject clearfix" title="<%=h task.subject %>"><%=h task.subject %></div>
+      <%- if task.custom_values.any? { |cv| cv.custom_field_id.to_s == Setting.plugin_agile_dwarf['block_custom_field_id'] } %>
+        <div class="fr blocked_checker clearfix">
+          <% checked = task.blocked? %>
+          <div class="onoffswitch">
+            <%= check_box_tag("custom_fields_value", checked ? '1' : '0', checked, {id: "custom_fields_value_#{task.id}", class: 'onoffswitch-checkbox', custom_field_id: Setting.plugin_agile_dwarf['block_custom_field_id']}) %>
+            <label class="onoffswitch-label" for="<%= "custom_fields_value_#{task.id}" %>">
+                <div class="onoffswitch-inner"></div>
+                <div class="onoffswitch-switch"></div>
+            </label>
+          </div>
+        </div>
+      <% end %>
+      <div class="task_row clearfix">
+          <div class="task_doneratio_slide"></div>
+          <div class="clearfix fr">
+            <div class="fl">Assigned to:&nbsp;</div>
+            <div class="task_owner fr"><%=h task.assigned_to %></div>
+          </div>
+      </div>
+      <div class="task_doneratio_value fl clearfix"><%=h task.done_ratio || '0' %></div>
+      <div class="fl task_estimate_params clearfix">
+          <div class="measure fl">%</div>
+          <div class="fl task_estimate_sep">/</div>
+          <div class="task_estimate fl"><%=h task.estimated_hours || l(:label_sprints_placeholder_estimated) %></div>
+          <div class="measure fl">h</div>
+      </div>
+      <div class="task_add_spent fr clearfix">
+        <%= link_to new_issue_time_entry_path(task) do %>
+          <div class="task_add_spent_value fr">X</div>
+          <div class="measure fr">+</div>
+        <% end %>
+      </div>
+      <div class="fr task_estimate_params clearfix">
+          <div class="measure fr">h</div>
+          <div class="fr task_spent_time"><%=h task.spent || '0' %></div>
+      </div>
+    </div>
+    <div class="custom_fields clearfix">
+      <% task.custom_field_values.each do |cfv| %>
+        <% next unless @available_custom_fields_ids.include? cfv.custom_field.id %>
+        <div class="custom_field clearfix" data-custom-field-id=<%= cfv.custom_field.id %>>
+          <div class="fl name"><%= cfv.custom_field.name %>:</div>
+          <div class="fl value"><%= cfv.value %></div>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
+
+

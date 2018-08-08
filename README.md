@@ -1,21 +1,21 @@
 Agile Dwarf
 ===========
 
-Thank you for your interest in AgileDwarf
+Thank you for your interest in agile_dwarf
 
 INSTALLATION INSTRUCTIONS
 -------------------------
 
-Download the package from https://github.com/iRessources/AgileDwarf
+Download the package from https://github.com/iRessources/agile_dwarf
 
 for Redmine 2.x: unpack it into #{RAILS_ROOT}/plugins
 for Redmine 1.x: unpack it into #{RAILS_ROOT}/vendor/plugins
 
-Name the unpacked folder 'AgileDwarf'
+Name the unpacked folder 'agile_dwarf'
 
 OR instead of downloading and unpacking
 
-    execute git clone https://github.com/iRessources/AgileDwarf.git in corresponding folder.
+    execute git clone https://github.com/iRessources/agile_dwarf.git in corresponding folder.
 
 In #{RAILS_ROOT} run the command
 
@@ -49,7 +49,7 @@ It adds 3 new tabs to your Redmine:
 * Current tasks for every member grouped by status (New, In Progress, Resolved)
 * Drag & Drop support for tasks in status groups
 * Quick time and progress tracking
-* Configure AgileDwarf to use your workflow by setting the number of columns that should be displayed in the task board
+* Configure agile_dwarf to use your workflow by setting the number of columns that should be displayed in the task board
 
 ### Run Charts
 

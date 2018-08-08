@@ -22,7 +22,7 @@
             var time = el.find('.task_estimate').text();
             time = +time || 0;
             this.est = time;
-            this.done = (+el.children('.task_doneratio_value').text() / 100) * time;
+            this.done = (+el.find('.task_doneratio_value').text() / 100) * time;
             this.spent = +el.find('.task_spent_time').text();
             this.owner = el.find('.task_owner').text();
 
@@ -37,7 +37,7 @@
             $('.task_doneratio_value', el).editable(Sprints.getUrl('taskinline'), $.extend({name: 'done_ratio', type: 'ptext', width: 50, callback: function (res, settings)
             {
                 res = +res;
-                $(this).siblings('.task_row').children('.task_doneratio_slide').slider('value', res);
+                $(this).siblings('.task_row').find('.task_doneratio_slide').slider('value', res);
                 var timeNew = (res / 100) * task.est;
                 panel.times.updateTaskDone(task, timeNew).update();
                 task.done = timeNew;
@@ -55,7 +55,7 @@
                 task.done = timeNew;
             }}, taskInlineOpts));
             // spent
-            $('.task_add_spent_value', el).editable(Sprints.getUrl('taskspent'), $.extend({name: 'hours', type: 'text', placeholder: 'X', width: 50, event: 'addspent', callback: function (res, settings)
+            /*$('.task_add_spent_value', el).editable(Sprints.getUrl('taskspent'), $.extend({name: 'hours', type: 'text', placeholder: 'X', width: 50, event: 'addspent', callback: function (res, settings)
             {
                 $(this).html('X');
                 var spent = el.find('.task_spent_time');
@@ -63,7 +63,7 @@
                 spent.text(timeNew);
                 panel.times.updateTaskSpent(task, timeNew).update();
                 task.spent = timeNew;
-            }}, taskInlineOpts));
+            }}, taskInlineOpts));*/
             // owner
             $('.task_owner', el).editable(Sprints.getUrl('taskinline'), $.extend({name: 'assigned_to_id', type: 'select', onblur : 'submit', placeholder: Sprints.l('task_owner_placeholder'),
                 data: Sprints.getProjectUsers(), callback: function (res, settings)
@@ -105,7 +105,7 @@
             // add spent button
             $('.task_add_spent', el).click(function ()
             {
-                $(this).children('.task_add_spent_value').trigger('addspent');
+                $(this).find('.task_add_spent_value').trigger('addspent');
             });
 
             // tooltip
@@ -121,6 +121,32 @@
                     }
                 },
                 show: {solo: true}
+            });
+
+            $('.custom_fields .custom_field', el).each(function (index, element) {
+                var edit = $(element).children('.value');
+                var custom_field_id = $(element).attr('data-custom-field-id');
+                edit.editable(function (value) {
+                    var custom_field_values = {};
+                    custom_field_values[custom_field_id] = value;
+                    var data = { 'issue': { 'custom_field_values': custom_field_values } }
+                    var result = $.ajax({
+                       url: Sprints.getUrl('issues') + '/' + task.id,
+                       type: "PUT",
+                       data: data,
+                       dataType : "json",
+                       complete : function (xhr, textStatus) {
+                        if (textStatus != 'success') { console.log([xhr, textStatus])};
+                       }
+                   });
+                   return(value);
+                },
+                {
+                    method: 'PUT',
+                    type: 'ptext',
+                    name: 'issue[custom_field_values]['+custom_field_id+']'
+                });
+                $(element).show();
             });
         };
 
@@ -226,7 +252,7 @@
                             done_perc = Math.round((ownerData.done * 100) / ownerData.est);
                         times += '<div class="sprint_time">' + owner + ': ' + done_perc + '% / ' + ownerData.est + 'h<span class="fr">' + ownerData.spent + 'h</span></div>';
                     }
-                    column.element.children('.time_list').html(times);
+                    column.element.find('.time_list').html(times);
                     return obj;
                 };
 
@@ -269,11 +295,29 @@
         // selections
         $('#sprints_selection select').change(function ()
         {
-            location.href = Sprints.getUrl('self') + '?project_id=' + Sprints.getProjectId() + '&sprint=' + $(this).val() + '&user=' +  $('#user_selection select').val();
+            location.href = Sprints.getUrl('self') +
+            '?project_id=' + Sprints.getProjectId() +
+            '&sprint=' + $(this).val() +
+            '&trackers=' + $('#tracker_selection select').val() +
+            '&user=' + $('#user_selection select').val();
         });
+
         $('#user_selection select').change(function ()
         {
-            location.href = Sprints.getUrl('self') + '?project_id=' + Sprints.getProjectId() + '&sprint=' + $('#sprints_selection select').val() + '&user=' +  $(this).val();
+            location.href = Sprints.getUrl('self') +
+            '?project_id=' + Sprints.getProjectId() +
+            '&sprint=' + $('#sprints_selection select').val() +
+            '&trackers=' + $('#tracker_selection select').val() +
+            '&user=' + $(this).val();
+        });
+
+        $('#tracker_selection select').change(function ()
+        {
+            location.href = Sprints.getUrl('self') +
+            '?project_id=' + Sprints.getProjectId() +
+            '&sprint=' + $('#sprints_selection select').val() +
+            '&trackers=' + $(this).val() +
+            '&user=' + $('#user_selection select').val();
         });
 
         // highlighting

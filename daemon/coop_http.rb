@@ -221,7 +221,7 @@ module CoopConnection
   end
 
   RESPONSE = [
-      "HTTP/1.1 %d AgileDwarf Coop",
+      "HTTP/1.1 %d agile_dwarf Coop",
       "Content-length: %d",
       "Content-type: %s",
       "Connection: close", "", "%s"

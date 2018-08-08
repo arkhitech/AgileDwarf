@@ -1,7 +1,49 @@
-<div id="task.<%=h task.id %>" class="sc_task <%= @closed_status == task.status_id ? 'closed_task' : '' %>">
-  <div class="fl task_no">#<%= link_to task.id, :controller => 'issues', :action => 'show', :id => task %></div>
-  <div class="fl task_desc"><img src="<%= File.join(@plugin_path, 'images', 'task_desc.png') %>"/></div>
-  <div class="task_subject"><%=h task.subject %></div>
-  <div class="task_estimate fl"><%=h task.estimated_hours || l(:label_sprints_placeholder_estimated) %></div>
-  <div class="task_owner fr"><%=h task.assigned_to %></div>
-</div>
+<% if @trackers.include?('All') || @trackers.include?(task.tracker.try(:name)) %>
+  <div id="task.<%=h task.id %>" class="sc_task sc_task_tracker_<%= Tracker.find(task.tracker_id).name %> <%= Tracker.find(task.tracker_id).name %>  <%= task.children.count  == 0 or Tracker.find(task.tracker_id).name != 'UserStory' ? '' : 'sc_task_hide' %> <%= @closed_status == task.status_id ? 'closed_task' : '' %> <%= 'blocked' if task.blocked? %>">
+
+      <% if task.parent || task.tracker_id == Tracker.where(name: "UserStory").first.try(:id) %>
+        <% (task.parent || task).tap do |user_story| %>
+        <div class="task_parent">
+          User Story:
+          <span class="task_no">#<%= link_to user_story.id, :controller => 'issues', :action => 'show', :id => user_story.id %></span>
+          <span><%= user_story.subject %></span>
+        </div>
+        <%- end %>
+      <%- end %>
+      <div style="padding-left: 30px; padding-top: 10px;">
+        <div class="clearfix">
+          <span class="task_no fl">#<%= link_to task.id, :controller => 'issues', :action => 'show', :id => task %></span>
+          <span class="task_desc fl"><img src="<%= File.join(@plugin_path, 'images', 'task_desc.png') %>"/></span>
+          <span class="task_tracker_name fl"><%=h task.t_name %>&nbsp;-&nbsp;</span>
+          <span class="task_subject fl"><%=h task.subject %></span>
+          <%- if task.custom_values.any? { |cv| cv.custom_field_id.to_s == Setting.plugin_agile_dwarf['block_custom_field_id'] } %>
+            <div class="fr blocked_checker clearfix">
+              <% checked = task.blocked? %>
+              <div class="onoffswitch">
+                <%= check_box_tag("custom_fields_value", checked ? '1' : '0', checked, {id: "custom_fields_value_#{task.id}", class: 'onoffswitch-checkbox', custom_field_id: Setting.plugin_agile_dwarf['block_custom_field_id']}) %>
+                <label class="onoffswitch-label" for="<%= "custom_fields_value_#{task.id}" %>">
+                    <div class="onoffswitch-inner"></div>
+                    <div class="onoffswitch-switch"></div>
+                </label>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <div class="clearfix">
+          <span class="fl">Estimated hours:&nbsp;</span><span class="fl task_estimate"><%=h task.estimated_hours || l(:label_sprints_placeholder_estimated) %></span>
+
+          <span class="fr task_owner" data-user-id=<%= task.assigned_to.try(:id) %>><%=h task.assigned_to %></span>
+          <span class="fr">Assigned to:&nbsp;</span>
+        </div>
+        <div class="custom_fields">
+          <% task.custom_field_values.each do |cfv| %>
+            <% next unless @available_custom_fields_ids.include? cfv.custom_field.id %>
+            <div class="custom_field clearfix" data-custom-field-id=<%= cfv.custom_field.id %>>
+              <div class="fl name"><%= cfv.custom_field.name %>:</div>
+              <div class="fl value"><%= cfv.value %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+  </div>
+<% end %>

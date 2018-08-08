@@ -145,3 +145,38 @@ var Sprints = function ($)
 
     return obj;
 }(jQuery);
+
+jQuery(document).ready(function() {
+    jQuery('#tracker_selection select').select2();
+
+    jQuery('.blocked_checker input[type=checkbox]').click(function(obj) {
+        custom_field_id = jQuery(this).attr('custom_field_id');
+        issue_id = jQuery(this).parents('.sc_task').prop('id').substr('task.'.length);
+        if (jQuery(this).val() == '1') {
+            value = '0';
+            jQuery(this).parents('.sc_task').removeClass('blocked');
+        }
+        else {
+            value = '1';
+            jQuery(this).parents('.sc_task').addClass('blocked');
+        };
+        jQuery(this).val(value);
+
+        data = {
+                "issue": {
+                    "custom_field_values": {
+                    }
+                }
+            }
+        data['issue']['custom_field_values'][custom_field_id.toString()] = value;
+
+        jQuery.ajax({
+            url: "/issues/" + issue_id,
+            type: "PUT",
+            data: data,
+            dataType: 'json'
+        });
+
+        return true;
+    })
+});

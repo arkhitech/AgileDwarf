@@ -1,20 +1,22 @@
-<%= javascript_include_tag 'libs/jquery-1.7.2.min.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery-ui-1.8.18.custom.min.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery.jeditable.mini.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery.jeditable.datepicker.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery.textPlaceholder.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery.jeditable.ptext.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'libs/jquery.qtip.min.js', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'common', :plugin => 'AgileDwarf' %>
-<%= javascript_include_tag 'sprints_mine', :plugin => 'AgileDwarf' %>
-<%= stylesheet_link_tag 'sprints.css', :plugin => 'AgileDwarf', :media => 'print,screen' %>
-<%= stylesheet_link_tag 'jquery-ui-1.8.18.custom.css', :plugin => 'AgileDwarf', :media => 'print,screen' %>
-<%= stylesheet_link_tag 'jquery.qtip.min.css', :plugin => 'AgileDwarf', :media => 'print,screen' %>
+<%= javascript_include_tag 'libs/jquery-1.7.2.min.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery-ui-1.8.18.custom.min.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery.jeditable.mini.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery.jeditable.datepicker.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery.textPlaceholder.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery.jeditable.ptext.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/jquery.qtip.min.js', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'libs/select2/select2.min.js', plugin: 'agile_dwarf' %>
+<%= javascript_include_tag 'common', :plugin => 'agile_dwarf' %>
+<%= javascript_include_tag 'sprints_mine', :plugin => 'agile_dwarf' %>
+<%= stylesheet_link_tag 'sprints.css', :plugin => 'agile_dwarf', :media => 'print,screen' %>
+<%= stylesheet_link_tag 'jquery-ui-1.8.18.custom.css', :plugin => 'agile_dwarf', :media => 'print,screen' %>
+<%= stylesheet_link_tag 'jquery.qtip.min.css', :plugin => 'agile_dwarf', :media => 'print,screen' %>
+<%= stylesheet_link_tag 'libs/select2/select2.css', :plugin => 'agile_dwarf' %>
 
 <script type="text/javascript">
     Sprints.setOptions(
     {
-        project_id: <%=h @project_id %>,
+        project_id: <%= h @project_id %>,
         protect_against_forgery: <%= protect_against_forgery? ? "true" : "false" %>,
         request_forgery_protection_token: '<%= request_forgery_protection_token %>',
         form_authenticity_token: '<%= form_authenticity_token %>',
@@ -25,6 +27,7 @@
             'taskinline': '<%= url_for(:controller => 'adtaskinl', :action => 'inplace') %>',
             'tasktip': '<%= url_for(:controller => 'adtaskinl', :action => 'tooltip') %>',
             'taskspent': '<%= url_for(:controller => 'adtaskinl', :action => 'spent') %>',
+            'issues': '<%= url_for(:controller => 'issues') %>',
             'self': '<%= url_for(:controller => 'adtasks', :action => 'list') %>'
         },
         lang:
@@ -41,26 +44,52 @@
   <fieldset id="filters" class="collapsible">
     <legend><%= l(:label_filter_plural) %></legend>
     <div id="sprints_selection" class="fl">
-      <select>
-        <option <%= @selected == 'all' ? 'selected=selected' : '' %> value='all'><%= l(:label_sprints_select_all) %></option>
-        <option <%= @selected == 'none' ? 'selected=selected' : '' %> value='none'><%= l(:label_sprints_select_none) %></option>
-        <%- @sprints.each do |s| %>
-            <option value="<%= s.id %>" <%= @selected == s.id.to_s ? 'selected=selected' : '' %>><%= s.name %></option>
-        <%- end %>
-      </select>
+      <div>
+        <label for="sprint_select">
+          <%= l(:label_filter_sprint_select) %>
+        </label>
+      </div>
+      <div>
+        <select id="sprint_select">
+          <option <%= @selected == 'all' ? 'selected=selected' : '' %> value='all'><%= l(:label_sprints_select_all) %></option>
+          <option <%= @selected == 'none' ? 'selected=selected' : '' %> value='none'><%= l(:label_sprints_select_none) %></option>
+          <option <%= @selected == 'current' ? 'selected=selected' : '' %> value='current'><%= l(:label_sprints_select_current) %></option>
+          <%- @sprints.each do |s| %>
+              <option value="<%= s.id %>" <%= @selected == s.id.to_s ? 'selected=selected' : '' %>><%= s.name %></option>
+          <%- end %>
+        </select>
+      </div>
     </div>
     <div id="user_selection" class="fl">
-      <select>
-        <option <%= @user == 'all' ? 'selected=selected' : '' %> value='all'><%= l(:label_tasks_select_user_all) %></option>
-        <option <%= @user == 'current' ? 'selected=selected' : '' %> value='current'><%= l(:label_tasks_select_user_current) %></option>
-        <%- @assignables.each do |s| %>
-            <option value="<%= s.id %>" <%= @user == s.id.to_s ? 'selected=selected' : '' %>><%= s.firstname + ' ' + s.lastname %></option>
-        <%- end %>
-      </select>
+      <div>
+        <label for="user_select">
+          <%= l(:label_filter_user_select) %>
+        </label>
+      </div>
+      <div>
+        <select id="user_select">
+          <option <%= @user == 'all' ? 'selected=selected' : '' %> value='all'><%= l(:label_tasks_select_user_all) %></option>
+          <option <%= @user == 'current' ? 'selected=selected' : '' %> value='current'><%= l(:label_tasks_select_user_current) %></option>
+          <option <%= @user == 'unassigned' ? 'selected=selected' : '' %> value='unassigned'><%= l(:label_tasks_select_user_unassigned) %></option>
+          <%- @assignables.each do |s| %>
+              <option value="<%= s.id %>" <%= @user == s.id.to_s ? 'selected=selected' : '' %>><%= s.firstname + ' ' + s.lastname %></option>
+          <%- end %>
+        </select>
+      </div>
+    </div>
+    <div id="tracker_selection" class="fl">
+      <div>
+        <label>
+          <%= l(:label_filter_trackers_select) %>
+        </label>
+      </div>
+      <div>
+        <%= select_tag :trackers, options_for_tracker_select, multiple: true  %>
+      </div>
     </div>
   </fieldset>
 </div>
 
-<div id="tasks">
+<div id="tasks" class="column-<%= @columns.size %>">
   <%= render :partial => "column", :collection => @columns %>
 </div>

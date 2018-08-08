@@ -1,8 +1,26 @@
 <div class='task_panel' id="column.<%= column[:id] %>">
-  <h3><%=h @statuses[column[:id]] %></h3>
-  <div class="task_list">
-    <%= render :partial => "task", :collection => column[:tasks] %>
+  <div class="clearfix">
+    <h3><%=h @statuses[column[:id]] %></h3>
+    <div class="task_list">
+      <%= render :partial => "task", :collection => column[:tasks] %>
+    </div>
+    <div class="time_list fr"></div>
   </div>
-  <div class="time_list fr">
+  <div class="fl clearfix users_stats">
+    <% column[:points].each do |custom_field, users| %>
+      <div data-type-id='<%= custom_field.id %>'>
+        <b><%= custom_field.name %>:</b>
+        <% users.each do |user, points| %>
+          <% next unless user.is_a? User %>
+          <% user_name = user ? user.name : 'unassigned' %>
+          <% user_id = user ? user.id : 'unassigned' %>
+          <div class='clearfix user_points' data-user-id='<%= user_id %>' data-user-name='<%= user_name %>'>
+            <span class='fl'><%= link_to_if user, user_name, user %>: </span>
+            <span class='fr'><%= points %> pts</span>
+          </div>
+        <% end %>
+        <span class='fl'>Total <%= custom_field.name %>: <%= users[:sum] %> pts</span>
+      </div>
+    <% end %>
   </div>
 </div>

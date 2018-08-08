@@ -1,0 +1,24 @@
+<div id="task.<%=h task.id %>" class="sc_task sc_task_tracker_<%= Tracker.find(task.tracker_id).name %> <%= Tracker.find(task.tracker_id).name %>  <%= task.children.count  == 0 or Tracker.find(task.tracker_id).name != 'UserStorie' ? '' : 'sc_task_hide' %> <%= @closed_status == task.status_id ? 'closed_task' : '' %>">
+
+    <% if task.parent || task.tracker_id == Tracker.where(name: "UserStory").first.try(:id) %>
+      <% (task.parent || task).tap do |user_story| %>
+      <div class="task_parent">
+        User Story: 
+        <span class="task_no">#<%= link_to user_story.id, :controller => 'issues', :action => 'show', :id => user_story.id %></span>
+        <span><%= user_story.subject %></span>
+      </div>
+      <%- end %>
+    <%- end %>
+    <div style="padding-left: 30px; padding-top: 10px;">
+      <div>
+        <span class="task_no">#<%= link_to task.id, :controller => 'issues', :action => 'show', :id => task %></span>
+        <span class="task_desc"><img src="<%= File.join(@plugin_path, 'images', 'task_desc.png') %>"/></span>
+        <span class="task_tracker_name"><%=h task.t_name %>&nbsp;-&nbsp;</span>
+        <span class="task_subject"><%=h task.subject %></span>
+      </div>
+      <div>
+        <span class="fl task_estimate"><%=h task.estimated_hours || l(:label_sprints_placeholder_estimated) %></span>
+        <span class="fr task_owner"><%=h task.assigned_to %></span>
+      </div>
+    </div>
+</div>
