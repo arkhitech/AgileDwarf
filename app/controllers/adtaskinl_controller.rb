@@ -26,12 +26,13 @@ class AdtaskinlController < ApplicationController
     attribs['tracker_id'] ||= Setting.plugin_agile_dwarf['tracker']
     attribs['author_id'] = User.current.id
     task = SprintsTasks.new(attribs)
-    begin
+    task.position = Issue.maximum(:position)+1
+#    begin
       task.save!
-    rescue => e
-      render :text => e.message.blank? ? e.to_s : e.message, :status => 400
-      return
-    end
+#    rescue => e
+#      render :text => e.message.blank? ? e.to_s : e.message, :status => 400
+#      return
+#    end
 
     status = (task.errors.empty? ? 200 : 400)
 
@@ -73,14 +74,17 @@ class AdtaskinlController < ApplicationController
     attribs = attribs.flatten
     param_id = attribs[0]
     attribs = Hash[*attribs]
-    task = SprintsTasks.find(params[:id], :include => :assigned_to)
-    begin
-      task.init_journal(User.current)
-      result = task.update_attributes(attribs)
-    rescue => e
-      render :text => e.message.blank? ? e.to_s : e.message, :status => 400
-      return
-    end
+    #task = SprintsTasks.includes(:assigned_to).find(params[:id])
+    task = SprintsTasks.find(params[:id])
+    #begin
+    #  task.init_journal(User.current)
+    logger.error "Updating attributes: #{attribs.inspect}"
+      result = task.update!(attribs)
+    logger.error "DONE Updating attributes: #{attribs.inspect}"
+    #rescue => e
+    #  render :text => e.message.blank? ? e.to_s : e.message, :status => 400
+    #  return
+    #end
 
     status = (result ? 200 : 400)
     task.reload
